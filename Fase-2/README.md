@@ -1,94 +1,65 @@
-# Fase 1 — Docker
+# Fase 2 — CI (GitHub Actions)
 
-> **Objetivo:** empacotar o StatusBoard num container, garantindo que ele rode de forma idêntica em qualquer máquina, sem depender de instalação manual de servidor ou dependências.
+> **Objetivo:** automatizar a verificação de que a imagem Docker do StatusBoard continua buildando e funcionando corretamente a cada mudança no código, sem depender de testes manuais antes do push.
 
 ## Contexto
 
-Na [Fase 0], rodar o StatusBoard exigia iniciar manualmente um servidor local (`python3 -m http.server` ou `extensão Live Server do VScode`). Isso funciona para desenvolvimento, mas cria problemas reais em produção:
+Na [Fase 1](../01-docker/README.md), o Dockerfile já garantia que a aplicação rodasse de forma reprodutível — mas validar isso ainda dependia de rodar `docker build` e `docker run` manualmente, na máquina local, sempre que algo mudasse.
 
-- Depende de quem for rodar ter as ferramentas certas instaladas
-- Nenhuma garantia de que o ambiente de quem builda é igual ao de quem executa
-- Não há um jeito padronizado de expor a aplicação para monitoramento, orquestração ou deploy
+CI (Continuous Integration) resolve esse ponto: a cada `push` ou `pull request`, um pipeline roda automaticamente e confirma que o build continua saudável. Se algo quebrar, isso aparece na hora, direto no GitHub — antes de qualquer decisão sobre deploy.
 
-Docker resolve isso empacotando a aplicação **e** o servidor que a serve dentro de uma imagem única, versionada e portátil.
+## O workflow
 
-## Decisões técnicas
+```yaml
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-### Por que Nginx como servidor
+env:
+  IMAGE_TAG: statusboard:v1.0
 
-O StatusBoard é uma aplicação 100% estática (HTML, CSS, JS puro, sem backend). Nginx é uma escolha padrão de mercado para servir esse tipo de conteúdo: leve, rápido, e com uma imagem oficial `alpine` muito reduzida.
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
+      - name: Build da imagem Docker
+        run: docker build -t ${{ env.IMAGE_TAG }} ./app
 
-### O healthcheck
+      - name: Rodar o container
+        run: docker run -d -p 8080:80 --name statusboard ${{ env.IMAGE_TAG }}
 
-```dockerfile
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget -q --spider http://localhost || exit 1
+      - name: Verificar se a aplicação responde
+        run: |
+          sleep 3
+          curl --fail http://localhost:8080 || exit 1
+
+      - name: Parar o container
+        run: docker stop statusboard
 ```
 
-Verifica a cada 30 segundos se o Nginx está respondendo dentro do container. Isso é o que permite ao Docker (e, futuramente, a orquestradores como Kubernetes na Fase 6) saber se o container está saudável ou precisa ser reiniciado/substituído — sem essa configuração, o Docker só sabe se o processo está *rodando*, não se está *funcionando*.
+### O que cada parte faz
 
-## Dockerfile
-
-```dockerfile
-# Imagem base - Nginx alpine (Versão leve e otimizada)
-FROM nginx:alpine
-
-# Instrução para copiar os arquivos do diretorio "X" para a imagem
-COPY website/ /usr/share/nginx/html
-
-# Expondo a porta de acesso
-EXPOSE 80
-
-# Verificação da saúde do sistema
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget -q --spider http://localhost || exit 1
-
-# Comandos CMD para forçar o Nginx rodar em primeiro plano, evitando morrer pelo Docker
-CMD [ "nginx", "-g", "daemon off;"]
-```
-
-## Como rodar
-
-```bash
-# build da imagem
-docker build -t statusboard:v1.0 .
-
-# executar o container
-docker run -d -p 8080:80 --name statusboard statusboard:v1.0
-```
-
-Acesse: `http://localhost:8080`
-
-### Verificando o healthcheck
-
-```bash
-docker ps
-```
-
-Após ~30 segundos, a coluna `STATUS` deve exibir `(healthy)`.
-
-### Verificando o tamanho da imagem
-
-```bash
-docker images statusboard:v1.0
-```
-
-IMAGE              ID             DISK USAGE   CONTENT SIZE   EXTRA
-statusboard:v1.0   a9b6e9fc1bae       91.3MB         26.1MB        
-
-A imagem final é pequena porque herda de `nginx:alpine`, uma distribuição Linux minimalista, e não carrega nenhuma ferramenta de build.
-
+| Bloco | Função |
+|---|---|
+| `on: push / pull_request` | Dispara o pipeline em todo push na `main` e em todo PR aberto contra ela — valida o código antes de ser mesclado |
+| `env: IMAGE_TAG` | Centraliza a tag da imagem em um único lugar, evitando divergência entre os steps de build e run |
+| `actions/checkout@v4` | Baixa o código do repositório pro ambiente do runner |
+| `docker build` | Reproduz, de forma automática, a mesma validação feita manualmente na Fase 1 |
+| `docker run` | Sobe o container a partir da imagem recém-buildada |
+| `curl --fail` | Smoke test: confirma que a aplicação realmente responde na porta esperada, não só que o container existe |
+| `docker stop` | Encerra o container ao final do job, liberando o runner |
 
 ## Antes vs depois
 
-| | Fase 0 (manual) | Fase 1 (Docker) |
+| | Fase 1 (Docker) | Fase 2 (CI) |
 |---|---|---|
-| Como rodar | Instalar Python/extensão e iniciar servidor manualmente | `docker build` + `docker run` |
-| Reprodutibilidade | Depende do ambiente de quem executa | Idêntico em qualquer máquina com Docker |
-| Verificação de saúde | Nenhuma | Healthcheck automático a cada 30s |
-| Portabilidade | Baixa | Alta — a imagem roda igual localmente, em CI ou na nuvem |
-
-## Próxima fase
-
-Com a imagem funcionando localmente, o próximo passo é automatizar sua construção e validação a cada alteração no código, antes de decidir onde ela vai rodar em produção — isso é o que a [Fase 2 (CI)] resolve.
+| Quando o build é validado | Manualmente, quando alguém lembra de rodar | Automaticamente, a cada push/PR |
+| Onde a validação acontece | Máquina local | Runner do GitHub Actions |
+| Visibilidade de falhas | Só quem rodou localmente sabe | Visível pra qualquer colaborador, direto no PR |
+| Reusabilidade | N/A | Caminho de build fixo (`./app`), independe da fase |
