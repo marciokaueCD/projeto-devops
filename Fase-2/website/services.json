@@ -1,9 +1,0 @@
-[
-  { "name": "API Gateway", "status": "ok", "latency": 42, "uptime": 99.98 },
-  { "name": "Auth Service", "status": "ok", "latency": 61, "uptime": 99.95 },
-  { "name": "Database Primary", "status": "ok", "latency": 12, "uptime": 99.99 },
-  { "name": "Cache Layer", "status": "degraded", "latency": 210, "uptime": 98.42 },
-  { "name": "CDN", "status": "ok", "latency": 28, "uptime": 100.0 },
-  { "name": "Payment Gateway", "status": "down", "latency": 0, "uptime": 94.10 },
-  { "name": "Notification Service", "status": "ok", "latency": 88, "uptime": 99.87 }
-]

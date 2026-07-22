@@ -20,7 +20,7 @@ Clique com o botão direito do mouse no index.html e selecione "Open with Live S
 ## Estrutura
 
 ```
-statusboard/
+app/
 ├── index.html          # marcação principal do painel
 ├── style.css        # identidade visual (tema split-flap)
 ├── script.js          # relógio, fetch dos dados, renderização das linhas

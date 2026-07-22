@@ -35,7 +35,7 @@ Verifica a cada 30 segundos se o Nginx está respondendo dentro do container. Is
 FROM nginx:alpine
 
 # Instrução para copiar os arquivos do diretorio "X" para a imagem
-COPY website/ /usr/share/nginx/html
+COPY . /usr/share/nginx/html
 
 # Expondo a porta de acesso
 EXPOSE 80
