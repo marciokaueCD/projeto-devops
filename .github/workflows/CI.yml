@@ -10,7 +10,7 @@ env:
 
 jobs:
   build-and-verify:
-    runs-on: ubuntu-latest
+    runs-on: rocky-latest
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
