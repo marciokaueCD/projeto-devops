@@ -1,0 +1,15 @@
+# state local nunca deve ser versionado (usamos backend remoto, mas por segurança)
+*.tfstate
+*.tfstate.*
+
+# diretório de cache/plugins baixados pelo terraform init
+.terraform/
+# atenção: .terraform.lock.hcl NÃO entra aqui — ele deve ser versionado,
+# é o que garante que todo mundo usa exatamente a mesma versão do provider
+
+# arquivos de plano — podem conter dados sensíveis, nunca versionar
+*.tfplan
+
+# variáveis com segredo, se algum dia existirem
+*.auto.tfvars
+secrets.tfvars
