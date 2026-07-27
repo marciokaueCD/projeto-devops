@@ -85,4 +85,4 @@ Depois do push, no portal, a imagem aparece em **Container Registry → Reposito
 
 Criar esses quatro recursos manualmente já revela o problema que a automação resolve: se esse ambiente precisar ser recriado — em outra região, para um ambiente de staging, ou depois de uma exclusão acidental — é necessário repetir todos os cliques manualmente, com risco real de esquecer uma configuração ou digitar algo diferente da primeira vez.
 
-Isso motiva a [Fase 4 (Terraform)], onde toda essa infraestrutura passa a ser descrita como código, versionada e recriável com um único comando.
+Isso motiva a Fase 4 (Terraform), onde toda essa infraestrutura passa a ser descrita como código, versionada e recriável com um único comando.
