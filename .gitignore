@@ -1,6 +1,7 @@
 # state local nunca deve ser versionado (usamos backend remoto, mas por segurança)
 *.tfstate
 *.tfstate.*
+*.tfvars
 
 # diretório de cache/plugins baixados pelo terraform init
 .terraform/
@@ -13,3 +14,7 @@
 # variáveis com segredo, se algum dia existirem
 *.auto.tfvars
 secrets.tfvars
+
+# Ignorar arquivos de log do Terraform
+crash.log
+crash.*.log
