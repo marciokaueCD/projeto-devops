@@ -1,0 +1,48 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write   # necessário para OIDC
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./statusboard
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Login na Azure via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_STATUSBOARD }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login no ACR
+        run: az acr login --name acrstatusboardlab
+
+      - name: Build e tag da imagem
+        run: |
+          docker build -t acrstatusboardlab.azurecr.io/statusboard:${{ github.sha }} .
+          docker tag acrstatusboardlab.azurecr.io/statusboard:${{ github.sha }} \
+                     acrstatusboardlab.azurecr.io/statusboard:latest
+
+      - name: Push da imagem
+        run: |
+          docker push acrstatusboardlab.azurecr.io/statusboard:${{ github.sha }}
+          docker push acrstatusboardlab.azurecr.io/statusboard:latest
+
+      - name: Terraform apply (atualiza a imagem em produção)
+        working-directory: ./terraform/environments/prod
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var="container_image=acrstatusboardlab.azurecr.io/statusboard:${{ github.sha }}"
