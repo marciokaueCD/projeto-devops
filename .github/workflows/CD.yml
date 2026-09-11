@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./statusboard
+        working-directory: ./app
 
     steps:
       - name: Checkout do código
