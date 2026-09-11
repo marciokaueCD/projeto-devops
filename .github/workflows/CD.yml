@@ -43,7 +43,7 @@ jobs:
       - name: Instalar o Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.9.0"   # Estou travando a versão, evitando a surpresa se sair uma nova
+          terraform_version: "1.16.1"   # Estou travando a versão, evitando a surpresa se sair uma nova
     
       - name: Terraform apply (atualiza a imagem em produção)
         working-directory: ./Fase-4/statusboard
