@@ -41,7 +41,7 @@ jobs:
           docker push acrstatusboardlab.azurecr.io/statusboard:latest
 
       - name: Terraform apply (atualiza a imagem em produção)
-        working-directory: ./terraform/environments/prod
+        working-directory: ./Fase-4/statusboard
         run: |
           terraform init
           terraform apply -auto-approve \
