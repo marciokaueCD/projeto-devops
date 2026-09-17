@@ -32,6 +32,7 @@ az ad app federated-credential create \
     "audiences": ["api://AzureADTokenExchange"]
   }'
 ```
+<img width="2499" height="1178" alt="image" src="https://github.com/user-attachments/assets/bf07d133-cb85-424d-80f7-28ae183c726f" />
 
 ### `github.sha` como tag de imagem, não uma tag fixa
 
@@ -136,6 +137,8 @@ jobs:
           terraform apply -auto-approve \
             -var="container_image=acrstatusboardlab.azurecr.io/statusboard:${{ github.sha }}"
 ```
+<img width="2548" height="599" alt="image" src="https://github.com/user-attachments/assets/80ab7919-8358-446e-8653-d3f9ee9913d9" />
+
 ### Permissões RBAC necessárias para o Service Principal do CD
 
 | Escopo | Role |
@@ -180,6 +183,10 @@ Como o repositório deste projeto foi criado **depois** de 15 de julho de 2026, 
 | Rastreabilidade da imagem | Tag fixa, fácil de perder controle | Tag = hash do commit, sempre rastreável |
 | Risco de erro humano | Alto — múltiplos passos manuais, ordem importa | Baixo — sequência sempre idêntica |
 | Relação entre validação e entrega | Não existia CD | CD só roda se o CI, no mesmo commit, tiver concluído com sucesso |
+
+## Validação do Deploy e Imagem do Container:
+
+Captura de tela demonstrando o container, o repositório no ACR (acrstatusboardlab) e a aplicação em execução. Foi confirmada a integridade da implantação ao validar que a tag, o hash (digest) e a data/hora da imagem ativa no Container App correspondem exatamente à última publicação realizada no repositório.<img width="2557" height="1289" alt="image" src="https://github.com/user-attachments/assets/9d5262b9-5fce-4b6e-96da-9d23f0af2d34" />
 
 ## Próxima fase
 
